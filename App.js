@@ -1,82 +1,51 @@
-import React, {useState, useEffect} from 'react';
-import { Platform, KeyboardAvoidingView, StyleSheet, Text, View, TextInput, TouchableOpacity, Keyboard, FlatList } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
-import Task from './components/Task';
+import React from 'react';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { TabView, SceneMap, TabBar} from 'react-native-tab-view';
+import TaskList from './components/TaskList';
 
 const App = () => {
-  const [task, setTask] = useState();
-  const [tasksList, setTasksList] = useState([]);
-  const asyncStorageTasksKey = '@tasks';
+  const layout = useWindowDimensions();
+  const [index, setIndex] = React.useState(0);
+  const [routes] = React.useState([
+    { key: 'allTasks', title: 'All' },
+    { key: 'favTasks', title: 'Favorites' },
+    { key: 'completedTasks', title: 'Completed' },
+  ]);
 
-  const getTasksFromAsyncStorage = async () => {
-    try {
-      const tasks = await AsyncStorage.getItem(asyncStorageTasksKey);
-      if(tasks) {
-        setTasksList(JSON.parse(tasks));
-      }
-    } catch(error) {
-      console.log("Failed to get data from AsyncStorage : "+error);
-    }
-  };
+  const AllTasks = () => (
+    <TaskList name="allTasks"/>
+  );
 
-  const setTasksToAsyncStorage = async (tasks) => {
-    try {
-      AsyncStorage.setItem(asyncStorageTasksKey, JSON.stringify(tasks));
-    } catch(error) {
-      console.log("Failed to set data to AsyncStorage : "+error);
-    }
-  };
+  const FavTasks = () => (
+    <TaskList name="favTasks"/>
+  );
 
-  useEffect(() => {
-    getTasksFromAsyncStorage();
-  }, []);
+  const CompletedTasks = () => (
+    <TaskList name="completedTasks"/>
+  );
 
-  const createNewTask = () => {
-    Keyboard.dismiss();
-    const tasks = ([...tasksList,task]);
-    setTasksList(tasks);
-    setTask(null);
-    setTasksToAsyncStorage(tasks);
-  };
+  const Tasks = () => (
+    <TaskList name={routes[index].key}/>
+  );
 
-  const completeTask = (index) => {
-    var tasksCopy = [...tasksList];
-    tasksCopy.splice(index,1);
-    setTasksList(tasksCopy);
-    setTasksToAsyncStorage(tasksCopy);
-  };
+  const renderScene = SceneMap({
+    allTasks: Tasks,
+    favTasks: Tasks,
+    completedTasks: Tasks,
+  });
 
   return (
     <View style={styles.container}>
       <View style={styles.tasksWrapper}>
         <Text style={styles.tasksHeader}>My Tasks</Text>
-        {
-          tasksList.length ? (
-            <FlatList style={styles.tasksList}
-              data={tasksList}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({item,index}) => {
-                return(
-                  <TouchableOpacity key={index} onPress={() => completeTask(index)}>
-                    <Task title={item} />
-                  </TouchableOpacity>
-                )
-              }}
-            />
-          ) : (
-            <View style={styles.noTasksWrapper}>
-              <Text style={styles.noTasksMessage}>No tasks</Text>
-            </View>
-          )
-        }
-
+        <TabView style={styles.tabsView}
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          initialLayout={{ width: layout.width }}
+          renderTabBar={props => <TabBar {...props} style={styles.tab}/>}
+        />
       </View>
-      <KeyboardAvoidingView behaviour={ Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.createTaskWrapper}>
-        <TextInput style={styles.taskInput} placeholder='Create a new task..' value={task} onChangeText={text => setTask(text)}/>
-        <TouchableOpacity style={styles.addTaskButton} onPress={() => createNewTask()}>
-          <Text style={styles.addTaskButtonText}>+</Text>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
     </View>
   )
 };
@@ -89,54 +58,23 @@ const styles = StyleSheet.create({
     backgroundColor : '#FEFCD6',
   },
   tasksWrapper: {
-    paddingTop: 20,
-    paddingHorizontal: 20
+    paddingTop: 10,
+    paddingHorizontal: 2,
+    flex: 1
   },
   tasksHeader: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 30
+    marginBottom: 10,
+    padding: 5
   },
-  tasksList: {
-    height: '75%'
+  tabsView: {
+    flex: 8,
+    backgroundColor:'#FEFCD6'
   },
-  createTaskWrapper: {
-    position: 'absolute',
-    flexDirection: 'row',
-    bottom: 30,
-    alignItems : 'center',
-    justifyContent: 'space-around',
-    width: '100%'
-  },
-  taskInput: {
-    backgroundColor: 'white',
-    width: '70%',
-    padding: 10,
-    borderColor : '#F7DC6F',
-    borderWidth: 2,
-    borderRadius: 50,
-    fontSize: 16
-  },
-  addTaskButton: {
-    backgroundColor: 'yellow',
-    width: 60,
-    height: 60,
-    borderColor : '#F7DC6F',
-    borderWidth: 3,
-    borderRadius: 50,
-    alignItems : 'center',
-    justifyContent: 'center'
-  },
-  addTaskButtonText: {
-    fontSize:38
-  },
-  noTasksWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: 'red',
-    height: '80%'
-  },
-  noTasksMessage: {
-    fontSize : 24
+  tab: {
+    backgroundColor: '#000',
+    paddingTop: 5,
+    paddingBottom: 5,
   }
 });
