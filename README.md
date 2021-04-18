@@ -1,6 +1,6 @@
 # ToDoApp
 
-It is a simple React Native application to note down the tasks, make some tasks as Favorite and finally mark it as Completed. It is a self-learning project, created to explore the features and components.
+It is a simple React Native application to note down the tasks, make some tasks as Favorite and finally mark it as Completed. It is a self-learning project, created to explore the features and components of React Native.
 
 ## Screenshots
 <div align="center">
@@ -16,10 +16,10 @@ It is a simple React Native application to note down the tasks, make some tasks 
 * Attractive UI & UX
 * Tabs views to filter tasks
 * Run on both iOS and Android (I cannot test on iOS, but it should run)
-* FaltList
+* FlatList
 * AsyncStorage
 
-#### Setup
+### Setup
 
 * Clone this repo `git clone https://github.com/jishilkp/ToDoApp.git`
 * `cd ToDoApp`
